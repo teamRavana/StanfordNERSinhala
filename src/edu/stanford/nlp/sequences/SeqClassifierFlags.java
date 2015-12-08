@@ -1053,6 +1053,9 @@ public class SeqClassifierFlags implements Serializable {
   public String combinationMode;
   public String nerModel;
 
+  //Sinhala Varibles
+  public boolean useTitileSinhala = false;
+  
   // "ADD VARIABLES ABOVE HERE"
 
   public transient List<String> phraseGazettes = null;
@@ -2591,6 +2594,8 @@ public class SeqClassifierFlags implements Serializable {
       } else if (key.equalsIgnoreCase("ner.model")) {
         nerModel = val;
         // ADD VALUE ABOVE HERE
+      } else if (key.equals("useTitileSinhala")) {
+    	  useTitileSinhala = Boolean.parseBoolean(val);
       } else if ( ! key.isEmpty() && ! key.equals("prop")) {
         System.err.println("Unknown property: |" + key + '|');
       }
@@ -2626,7 +2631,7 @@ public class SeqClassifierFlags implements Serializable {
       val = "edu.stanford.nlp.article.extraction.PhraseFeatureFactory";
     } else if (val.equalsIgnoreCase("EmbeddingFeatureFactory")) {
       val = "edu.stanford.nlp.ie.EmbeddingFeatureFactory";
-    }
+    } 
 
     return val;
   }

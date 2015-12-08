@@ -741,7 +741,8 @@ public class NERFeatureFactory<IN extends CoreLabel> extends FeatureFactory<IN> 
 
   private final Pattern titlePattern = Pattern.compile("(?:Mr|Ms|Mrs|Dr|Miss|Sen|Judge|Sir)\\.?"); // todo: should make static final and add more titles
   private static final Pattern titlePattern2 = Pattern.compile("(?i:Mr|Mrs|Ms|Miss|Drs?|Profs?|Sens?|Reps?|Attys?|Lt|Col|Gen|Messrs|Govs?|Adm|Rev|Maj|Sgt|Cpl|Pvt|Capt|Ste?|Ave|Pres|Lieut|Hon|Brig|Co?mdr|Pfc|Spc|Supts?|Det|Mt|Ft|Adj|Adv|Asst|Assoc|Ens|Insp|Mlle|Mme|Msgr|Sfc)\\.?");
-
+  private static final Pattern titlePatternSinhala = Pattern.compile("(?:මහතා|මහත්මිය|මිය|මයා|පුජ්‍ය)\\.?");
+  
   private static final Pattern splitSlashHyphenWordsPattern = Pattern.compile("[-/]");
 
   private void generateSlashHyphenFeatures(String word, Collection<String> featuresC, String fragSuffix, String wordSuffix) {
@@ -808,6 +809,12 @@ public class NERFeatureFactory<IN extends CoreLabel> extends FeatureFactory<IN> 
       if (m.matches()) {
         featuresC.add("IS_TITLE");
       }
+    }
+    else if(flags.useTitileSinhala){
+    	Matcher m= titlePatternSinhala.matcher(cWord);
+    	if (m.matches()) {
+            featuresC.add("IS_TITLE");
+          }
     }
 
     if (flags.slashHyphenTreatment != SeqClassifierFlags.SlashHyphenEnum.NONE) {
