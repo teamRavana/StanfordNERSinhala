@@ -53,13 +53,16 @@
   by the "compile" target, to force a complete recompile.
 
 -->
-	<jar destfile = "stanford-ner.jar"
-		   basedir = "${basedir}/classes" />
 	
-  <target name="all" depends="clean,compile"
+	
+  <target name="all" depends="clean,compile,deploy"
     description="Clean build and dist directories, then compile"/>
 
-
+	<target name="deploy" depends="clean,compile"
+		   description="Pack in a jar file">
+		<jar  destfile = "stanford-ner.jar"
+			   basedir = "${basedir}/classes" />
+			</target>
 
 <!-- ==================== Clean Target ==================================== -->
 

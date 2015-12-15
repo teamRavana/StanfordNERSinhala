@@ -741,7 +741,10 @@ public class NERFeatureFactory<IN extends CoreLabel> extends FeatureFactory<IN> 
 
   private final Pattern titlePattern = Pattern.compile("(?:Mr|Ms|Mrs|Dr|Miss|Sen|Judge|Sir)\\.?"); // todo: should make static final and add more titles
   private static final Pattern titlePattern2 = Pattern.compile("(?i:Mr|Mrs|Ms|Miss|Drs?|Profs?|Sens?|Reps?|Attys?|Lt|Col|Gen|Messrs|Govs?|Adm|Rev|Maj|Sgt|Cpl|Pvt|Capt|Ste?|Ave|Pres|Lieut|Hon|Brig|Co?mdr|Pfc|Spc|Supts?|Det|Mt|Ft|Adj|Adv|Asst|Assoc|Ens|Insp|Mlle|Mme|Msgr|Sfc)\\.?");
-  private static final Pattern titlePatternSinhala = Pattern.compile("(?:මහතා|මහත්මිය|මිය|මයා|පුජ්‍ය)\\.?");
+  private static final Pattern titlePatternSinhalaPrev = Pattern.compile("(?:පුජ්‍ය|මහාචාර්ය|මහාචාර්‍ය|ආචාර්ය|ආචාර්‍ය|ගරු|අතිපුජ්‍ය)\\.?"); // major, lutinunt, etc..
+  private static final Pattern titlePatternSinhalaPost = Pattern.compile("(?:මහතා|මහත්මිය|මිය|මයා)\\.?");
+  private static final Pattern orgPatternSinhala = Pattern.compile("(?:සහෝදරයෝ|සමාගම|පුත්‍රයෝ|ආයතනය|දෙපාර්තමේන්තුව)\\.?");
+  private static final Pattern locPatternSinhala = Pattern.compile("(?:මාවත|පෙදෙස|පාර)\\.?");
   
   private static final Pattern splitSlashHyphenWordsPattern = Pattern.compile("[-/]");
 
@@ -810,10 +813,28 @@ public class NERFeatureFactory<IN extends CoreLabel> extends FeatureFactory<IN> 
         featuresC.add("IS_TITLE");
       }
     }
-    else if(flags.useTitileSinhala){
-    	Matcher m= titlePatternSinhala.matcher(cWord);
+    else if(flags.usePrevTitileSinhala){
+    	Matcher m= titlePatternSinhalaPrev.matcher(cWord);
     	if (m.matches()) {
-            featuresC.add("IS_TITLE");
+            featuresC.add("IS_TITLE_PREV");
+          }
+    }
+    else if(flags.usePostTitileSinhala){
+    	Matcher m= titlePatternSinhalaPost.matcher(cWord);
+    	if (m.matches()) {
+            featuresC.add("IS_TITLE_POST");
+          }
+    }
+    else if(flags.useOrgSinhala){
+    	Matcher m= orgPatternSinhala.matcher(cWord);
+    	if (m.matches()) {
+            featuresC.add("IS_ORG_POST");
+          }
+    }
+    else if(flags.useLocSinhala){
+    	Matcher m= locPatternSinhala.matcher(cWord);
+    	if (m.matches()) {
+            featuresC.add("IS_LOC_POST");
           }
     }
 

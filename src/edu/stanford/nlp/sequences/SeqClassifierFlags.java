@@ -1054,7 +1054,10 @@ public class SeqClassifierFlags implements Serializable {
   public String nerModel;
 
   //Sinhala Varibles
-  public boolean useTitileSinhala = false;
+  public boolean usePrevTitileSinhala = false;
+  public boolean usePostTitileSinhala = false;
+  public boolean useOrgSinhala = false;
+  public boolean useLocSinhala = false;
   
   // "ADD VARIABLES ABOVE HERE"
 
@@ -2594,8 +2597,15 @@ public class SeqClassifierFlags implements Serializable {
       } else if (key.equalsIgnoreCase("ner.model")) {
         nerModel = val;
         // ADD VALUE ABOVE HERE
-      } else if (key.equals("useTitileSinhala")) {
-    	  useTitileSinhala = Boolean.parseBoolean(val);
+      } // Sinhala Word matching
+      else if (key.equals("usePrevTitileSinhala")) {
+    	  usePrevTitileSinhala = Boolean.parseBoolean(val);
+      } else if (key.equals("usePostTitileSinhala")) {
+    	  usePostTitileSinhala = Boolean.parseBoolean(val);
+      } else if (key.equals("useOrgSinhala")) {
+    	  useOrgSinhala = Boolean.parseBoolean(val);
+      } else if (key.equals("useLocSinhala")) {
+    	  useLocSinhala = Boolean.parseBoolean(val);
       } else if ( ! key.isEmpty() && ! key.equals("prop")) {
         System.err.println("Unknown property: |" + key + '|');
       }

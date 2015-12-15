@@ -1112,6 +1112,22 @@ public abstract class AbstractSequenceClassifier<IN extends CoreMap> implements 
                             IOUtils.encodedOutputStreamPrintWriter(System.out, flags.outputEncoding, true),
                             readerWriter, outputScores);
   }
+  /**
+   * Added by Raavana
+   * Act as a wrapper to ClassifyReturnAndWrtite answers with more arguments method
+   * @param documents
+   * @param readerWriter
+   * @param outputScores
+   * @throws IOException
+   */
+  public List<Counter<String>> classifyReturnAndWriteAnswers(Collection<List<IN>> documents,
+                                      DocumentReaderAndWriter<IN> readerWriter,
+                                      boolean outputScores)
+         throws IOException {
+   return classifyReturnAndWriteAnswers(documents,
+                           IOUtils.encodedOutputStreamPrintWriter(System.out, flags.outputEncoding, true),
+                           readerWriter, outputScores);
+ }
 
   /** Does nothing by default.  Children classes can override if necessary */
   public void dumpFeatures(Collection<List<IN>> documents) {}
@@ -1194,6 +1210,95 @@ public abstract class AbstractSequenceClassifier<IN extends CoreMap> implements 
     }
   }
 
+  /**
+   * Added by Raavana. 
+   * Purpose of this method is similar to classifyAndWriteAnswers methods but in addition to that this returns the TP,FP,FN values
+   *  
+   */
+  public List<Counter<String>> classifyReturnAndWriteAnswers(Collection<List<IN>> documents,
+                                      PrintWriter printWriter,
+                                      DocumentReaderAndWriter<IN> readerWriter,
+                                      boolean outputScores)
+          throws IOException {
+    if (flags.exportFeatures != null) {
+      dumpFeatures(documents);
+    }
+
+    Timing timer = new Timing();
+
+    Counter<String> entityTP = new ClassicCounter<>();
+    Counter<String> entityFP = new ClassicCounter<>();
+    Counter<String> entityFN = new ClassicCounter<>();
+    boolean resultsCounted = outputScores;
+    int numWords = 0;
+    int numDocs = 0;
+
+    final AtomicInteger threadCompletionCounter = new AtomicInteger(0);
+
+    ThreadsafeProcessor<List<IN>, List<IN>> threadProcessor =
+        new ThreadsafeProcessor<List<IN>, List<IN>>() {
+      @Override
+      public List<IN> process(List<IN> doc) {
+        doc = classify(doc);
+
+        int completedNo = threadCompletionCounter.incrementAndGet();
+        if (flags.verboseMode) System.err.println(completedNo + " examples completed");
+        return doc;
+      }
+      @Override
+      public ThreadsafeProcessor<List<IN>, List<IN>> newInstance() {
+        return this;
+      }
+    };
+
+    MulticoreWrapper<List<IN>, List<IN>> wrapper = null;
+    if (flags.multiThreadClassifier != 0) {
+      wrapper = new MulticoreWrapper<List<IN>, List<IN>>(flags.multiThreadClassifier, threadProcessor);
+    }
+
+    for (List<IN> doc: documents) {
+      numWords += doc.size();
+      numDocs++;
+      if (wrapper != null) {
+        wrapper.put(doc);
+        while (wrapper.peek()) {
+          List<IN> results = wrapper.poll();
+          writeAnswers(results, printWriter, readerWriter);
+          resultsCounted = resultsCounted && countResults(results, entityTP, entityFP, entityFN);
+        }
+      } else {
+        List<IN> results = threadProcessor.process(doc);
+        writeAnswers(results, printWriter, readerWriter);
+        resultsCounted = resultsCounted && countResults(results, entityTP, entityFP, entityFN);
+      }
+    }
+    if (wrapper != null) {
+      wrapper.join();
+      while (wrapper.peek()) {
+        List<IN> results = wrapper.poll();
+        writeAnswers(results, printWriter, readerWriter);
+        resultsCounted = resultsCounted && countResults(results, entityTP, entityFP, entityFN);
+      }
+    }
+
+    long millis = timer.stop();
+    double wordspersec = numWords / (((double) millis) / 1000);
+    NumberFormat nf = new DecimalFormat("0.00"); // easier way!
+    System.err.println(StringUtils.getShortClassName(this) +
+                       " tagged " + numWords + " words in " + numDocs +
+                       " documents at " + nf.format(wordspersec) +
+                       " words per second.");
+    if (resultsCounted) {
+      printResults(entityTP, entityFP, entityFN);
+    }
+    List <Counter<String>> results = new ArrayList<Counter<String>>();
+    results.add(entityTP);
+    results.add(entityFP);
+    results.add(entityFN);
+    
+    return results;
+  }
+  
   /**
    * Load a test file, run the classifier on it, and then print the answers to
    * stdout (with timing to stderr). This uses the value of flags.documentReader
